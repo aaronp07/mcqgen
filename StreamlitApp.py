@@ -17,6 +17,12 @@ from src.mcqgenerator.logger import logging
 with open(r'C:\Users\LENOVO\OneDrive\Desktop\Project\GenAI\mcqgen\Response.json', 'r') as file:
     RESPONSE_JSON = json.load(file)
     
+# Initialize session state for results
+if "response" not in st.session_state:
+    st.session_state.response = None
+if "df" not in st.session_state:
+    st.session_state.df = None
+    
 # Create a title for the app
 st.title("MCQs Creator Application with LangChain 🦜🔗")
 
@@ -58,7 +64,8 @@ with st.form("user_inputs"):
                 
             except Exception as e:
                 traceback.print_exception(type(e), e, e.__traceback__)
-                st.error("Error")
+                st.error("An error occurred while generating the MCQs.")
+                st.session_state.ready = False
                 
             else:
                 print(f"Total Tokens:{cb.total_tokens}")
@@ -74,11 +81,37 @@ with st.form("user_inputs"):
                         if table_data is not None:
                             df = pd.DataFrame(table_data)
                             df.index = df.index + 1
+                            
+                            st.session_state.df = df
+                            st.session_state.response = response
+                            st.session_state.ready = True
+                            
                             st.table(df)
                             # Display the review in a text box as well
-                            st.text_area(label="Review", value=response["review"])
+                            st.text_area(label="Review", value=response.get("review", ""), height=150)
                         else:
-                            st.error("Error in the table data")
+                            st.error("Failed to parse quiz data.")
+                            st.session_state.ready = False
                             
                 else:
                     st.write(response)
+                    
+# ✅ Show download buttons only when ready
+if st.session_state.ready and st.session_state.df is not None and st.session_state.response is not None:
+    st.success("MCQs generated successfully! You can now download them.")
+    
+    csv_data = st.session_state.df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download MCQs as CSV",
+        data=csv_data,
+        file_name="generated_mcqs.csv",
+        mime="text/csv"
+    )
+
+    json_data = json.dumps(st.session_state.response, indent=2).encode('utf-8')
+    st.download_button(
+        label="📥 Download Full Response as JSON",
+        data=json_data,
+        file_name="full_response.json",
+        mime="application/json"
+    )
