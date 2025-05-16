@@ -102,16 +102,16 @@ if st.session_state.ready and st.session_state.df is not None and st.session_sta
     
     csv_data = st.session_state.df.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Download MCQs as CSV",
-        data=csv_data,
-        file_name="generated_mcqs.csv",
-        mime="text/csv"
+        label = "📥 Download MCQs as CSV",
+        data = csv_data,
+        file_name = "generated_mcqs.csv",
+        mime = "text/csv"
     )
 
     json_data = json.dumps(st.session_state.response, indent=2).encode('utf-8')
     st.download_button(
-        label="📥 Download Full Response as JSON",
-        data=json_data,
-        file_name="full_response.json",
-        mime="application/json"
+        label = "📥 Download Full Response as JSON",
+        data = json_data,
+        file_name = "full_response.json",
+        mime = "application/json"
     )
